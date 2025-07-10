@@ -123,7 +123,7 @@ for run in range(1):
 
     random_search= RandomizedSearchCV(estimator= DecisionTreeClassifier(random_state=0, splitter='best'),
                                param_distributions=parameters,
-                               scoring = 'recall',
+                               scoring = 'f1',
                                cv = 5,
                                n_iter= 100,
                                n_jobs=-1)
