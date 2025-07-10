@@ -7,7 +7,8 @@ import shap
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 from sklearn.metrics import confusion_matrix, classification_report, precision_recall_curve, auc
-
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 rfc = RandomForestClassifier(class_weight='balanced', max_depth=15, max_features='log2', min_samples_leaf=2, criterion='entropy',
                        min_samples_split=4, n_estimators=300, random_state=0, bootstrap=True)
@@ -92,92 +93,84 @@ X_hydrophobic = X['hydrophobic_composition']
 Y_has_aromatic = shap_values[:,index_of_has_aromatic][:,0]
 X_has_aromatic = X['has_aromatic']
 
-# Most important feature DP
 Y_cationic = shap_values[:,index_of_cationic][:,0]
 X_cationic = X['cationic_composition']
-
-
-#plt.scatter(X_DP, Y_DP, color = 'red', s = 10)
-#plt.xlabel('DP')
-#plt.ylabel('SHAP value (Bad)')
-#plt.title('The relationship between SHAP value (Bad) and DP')
-
-# 2nd important feature hydrophilic composition
-#plt.scatter(X_hydrophilic_composition, Y_hydrophilic_composition, color = 'red', s = 10)
-#plt.xlabel('Hydrophilic composition')
-#plt.ylabel('SHAP value (Bad)')
-#plt.title('The relationship between SHAP value (Bad) and hydrophilic composition')
 
 Y_peptide_length = shap_values[:,index_of_peptide_length][:,0]
 X_peptide_length = X['peptide length']
 
-# 3rd important feature cLogP
-
-Y_cLogP_predicted_bad = shap_values[:,index_of_cLogP_predicted][:,0]
+Y_cLogP_predicted = shap_values[:,index_of_cLogP_predicted][:,0]
 X_cLogP_predicted = X['CLogP_rdkit']
 
 
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 12))
-# plot on each of the subplots
+fig = plt.figure(figsize=(16, 12))
+gs = gridspec.GridSpec(2, 6, figure=fig)
 
-axes[0, 0].scatter(X_cLogP_predicted, Y_cLogP_predicted_bad,color = 'red', s=10)
-axes[0, 0].set_xlabel('cLogP',fontsize=16)
-axes[0, 0].axhline(y=0, color='k', linestyle='dotted')
-axes[0, 0].axvline(x=-6, color='k', linestyle='dotted')
-axes[0, 0].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[0, 0].tick_params(axis='y', labelsize=16)
-axes[0, 0].tick_params(axis='x', labelsize=16)
+# Top row: occupy 2 columns each
+ax1 = fig.add_subplot(gs[0, 0:2])
+ax2 = fig.add_subplot(gs[0, 2:4])
+ax3 = fig.add_subplot(gs[0, 4:6])
 
-axes[0, 1].scatter(X_hydrophobic, Y_hydrophobic,color = 'red', s=10)
-axes[0, 1].set_xlabel('hydrophobic_composition',fontsize=16)
-axes[0, 1].axhline(y=0, color='k', linestyle='dotted')
-axes[0, 1].axvline(x=0.30, color='k', linestyle='dotted')
-axes[0, 1].axvline(x=0.40, color='k', linestyle='dotted')
-axes[0, 1].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[0, 1].tick_params(axis='y', labelsize=16)
-axes[0, 1].tick_params(axis='x', labelsize=16)
+# Bottom row: shifted 0.5 column to the left (centered)
+ax4 = fig.add_subplot(gs[1, 1:3])
+ax5 = fig.add_subplot(gs[1, 3:5])
 
-axes[0, 2].scatter(X_net_charge, Y_net_charge,color = 'red', s=10)
-axes[0, 2].set_xlabel('net_charge',fontsize=16)
-axes[0, 2].axhline(y=0, color='k', linestyle='dotted')
-axes[0, 2].axvline(x=3, color='k', linestyle='dotted')
-axes[0, 2].axvline(x=4, color='k', linestyle='dotted')
-axes[0, 2].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[0, 2].tick_params(axis='y', labelsize=16)
-axes[0, 2].tick_params(axis='x', labelsize=16)
+# === Plotting ===
+# Plot 1
+ax1.scatter(X_cLogP_predicted, Y_cLogP_predicted, color='red', s=10)
+ax1.set_xlabel('CLogP_rdkit', fontsize=18)
+ax1.axhline(y=0, color='k', linestyle='dotted')
+ax1.axvline(x=-6, color='k', linestyle='dotted')
+ax1.set_xticks(np.arange(-15, 5.01, 5))
+ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax1.tick_params(axis='y', labelsize=18)
+ax1.tick_params(axis='x', labelsize=18)
 
-axes[1, 0].scatter(X_neutral, Y_neutral,color = 'red', s=10)
-axes[1, 0].set_xlabel('has_neutral',fontsize=16)
-axes[1, 0].axhline(y=0, color='k', linestyle='dotted')
-axes[1, 0].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[1, 0].tick_params(axis='y', labelsize=16)
-axes[1, 0].tick_params(axis='x', labelsize=16)
+# Plot 2
+ax2.scatter(X_hydrophobic, Y_hydrophobic, color='red', s=10)
+ax2.set_xlabel('hydrophobic_composition', fontsize=18)
+ax2.axhline(y=0, color='k', linestyle='dotted')
+ax2.axvline(x=0.3, color='k', linestyle='dotted')
+ax2.axvline(x=0.5, color='k', linestyle='dotted')
+ax2.set_xticks(np.arange(0, 0.81, 0.2))
+ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax2.tick_params(axis='y', labelsize=18)
+ax2.tick_params(axis='x', labelsize=18)
 
-axes[1, 1].scatter(X_cationic, Y_cationic,color = 'red', s=10)
-axes[1, 1].set_xlabel('cationic_composition',fontsize=16)
-axes[1, 1].axhline(y=0, color='k', linestyle='dotted')
-axes[1, 1].axvline(x=0.30, color='k', linestyle='dotted')
-axes[1, 1].axvline(x=0.40, color='k', linestyle='dotted')
-axes[1, 1].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[1, 1].tick_params(axis='y', labelsize=16)
-axes[1, 1].tick_params(axis='x', labelsize=16)
+# Plot 3
+ax3.scatter(X_net_charge, Y_net_charge, color='red', s=10)
+ax3.set_xlabel('net_charge', fontsize=18)
+ax3.axhline(y=0, color='k', linestyle='dotted')
+ax3.axvline(x=0, color='k', linestyle='dotted')
+ax3.axvline(x=4, color='k', linestyle='dotted')
+ax3.set_xticks(np.arange(0, 15.1, 3))
+ax3.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax3.tick_params(axis='y', labelsize=18)
+ax3.tick_params(axis='x', labelsize=18)
 
-axes[1, 2].scatter(X_has_aromatic, Y_has_aromatic,color = 'red', s=10)
-axes[1, 2].set_xlabel('has_aromatic',fontsize=16)
-axes[1, 2].axhline(y=0, color='k', linestyle='dotted')
-axes[1, 2].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[1, 2].tick_params(axis='y', labelsize=16)
-axes[1, 2].tick_params(axis='x', labelsize=16)
+# Plot 4
+ax4.scatter(X_neutral, Y_neutral, color='red', s=10)
+ax4.set_xlabel('has_neutral', fontsize=18)
+ax4.axhline(y=0, color='k', linestyle='dotted')
+ax4.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax4.set_xticks(np.arange(0, 1.01, 1))
+ax4.tick_params(axis='y', labelsize=18)
+ax4.tick_params(axis='x', labelsize=18)
 
-# set overall title and adjust subplot spacing
+# Plot 5
+ax5.scatter(X_cationic, Y_cationic, color='red', s=10)
+ax5.set_xlabel('cationic_composition', fontsize=18)
+ax5.axhline(y=0, color='k', linestyle='dotted')
+ax5.axvline(x=0.3, color='k', linestyle='dotted')
+ax5.axvline(x=0.4, color='k', linestyle='dotted')
+ax5.set_xticks(np.arange(0, 0.81, 0.2))
+ax5.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax5.tick_params(axis='y', labelsize=18)
+ax5.tick_params(axis='x', labelsize=18)
+
+
+# === Styling ===
+fig.text(0.03, 0.5, 'B - SHAP values Class0: MIC>64', ha='center', va='center', rotation='vertical', fontsize=26)
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.subplots_adjust(hspace=0.4, wspace=0.3)
-#fig.text(0.5, 0.03, 'feature values', ha'center', va='center', fontsize=14)
-fig.text(0.03, 0.5, 'SHAP values Class0: MIC>64', ha='center', va='center', rotation='vertical', fontsize=24)
-plt.rcParams['font.family'] = 'Times New Roman'
-plt.show()
-
-plt.scatter(X_peptide_length, Y_peptide_length, color = 'red', s=10)
-plt.xlabel('peptide length', fontsize=16)
-plt.axhline(y=0.0, color='k', linestyle='dotted')
+plt.subplots_adjust(hspace=0.4, wspace=1.0)
 plt.show()
