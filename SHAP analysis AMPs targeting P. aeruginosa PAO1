@@ -2,11 +2,12 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
 import shap
-from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
-from sklearn.metrics import confusion_matrix, classification_report, precision_recall_curve, auc
+from sklearn.metrics import confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
 
 rfc= RandomForestClassifier(class_weight='balanced_subsample', max_depth=24,  max_features='log2', min_samples_leaf=2,
                        min_samples_split=3, n_estimators=352, random_state=0, criterion='entropy', bootstrap=True)
@@ -92,73 +93,74 @@ X_hydrophobic = X['hydrophobic_composition']
 Y_has_aromatic = shap_values[:,index_of_has_aromatic][:,0]
 X_has_aromatic = X['has_aromatic']
 
-# Most important feature DP
 Y_cationic = shap_values[:,index_of_cationic][:,0]
 X_cationic = X['cationic_composition']
-
-
-#plt.scatter(X_DP, Y_DP, color = 'red', s = 10)
-#plt.xlabel('DP')
-#plt.ylabel('SHAP value (Bad)')
-#plt.title('The relationship between SHAP value (Bad) and DP')
-
-# 2nd important feature hydrophilic composition
-#plt.scatter(X_hydrophilic_composition, Y_hydrophilic_composition, color = 'red', s = 10)
-#plt.xlabel('Hydrophilic composition')
-#plt.ylabel('SHAP value (Bad)')
-#plt.title('The relationship between SHAP value (Bad) and hydrophilic composition')
 
 Y_peptide_length = shap_values[:,index_of_peptide_length][:,0]
 X_peptide_length = X['peptide length']
 
-# 3rd important feature cLogP
 
 Y_cLogP_predicted = shap_values[:,index_of_cLogP_predicted][:,0]
 X_cLogP_predicted = X['CLogP_rdkit']
 
+# You can also try ax4 = gs[1, 0:2] and ax5 = gs[1, 2:], depending on spacing
+fig = plt.figure(figsize=(14, 12))
+gs = gridspec.GridSpec(2, 2, figure=fig)
 
-fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12, 9))
-# plot on each of the subplots
+# Top row: occupy 2 columns each
+ax1 = fig.add_subplot(gs[0, 0])
+ax2 = fig.add_subplot(gs[0, 1])
+ax3 = fig.add_subplot(gs[1, 0])
 
-axes[0, 0].scatter(X_net_charge, Y_net_charge,color = 'red', s=10)
-axes[0, 0].set_xlabel('net_charge',fontsize=15)
-axes[0, 0].axhline(y=0, color='k', linestyle='dotted')
-axes[0, 0].axvline(x=1, color='k', linestyle='dotted')
-axes[0, 0].axvline(x=4, color='k', linestyle='dotted')
-axes[0, 0].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[0, 0].tick_params(axis='y', labelsize=16)
-axes[0, 0].tick_params(axis='x', labelsize=16)
+# Bottom row: shifted 0.5 column to the left (centered)
+ax4 = fig.add_subplot(gs[1, 1])
 
-axes[0, 1].scatter(X_hydrophobic, Y_hydrophobic,color = 'red', s=10)
-axes[0, 1].set_xlabel('hydrophobic_composition',fontsize=15)
-axes[0, 1].axhline(y=0, color='k', linestyle='dotted')
-axes[0, 1].axvline(x=0.20, color='k', linestyle='dotted')
-axes[0, 1].axvline(x=0.30, color='k', linestyle='dotted')
-axes[0, 1].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[0, 1].tick_params(axis='y', labelsize=16)
-axes[0, 1].tick_params(axis='x', labelsize=16)
+# === Plotting ===
+# Plot 1
+ax1.scatter(X_net_charge, Y_net_charge, color='red', s=10)
+ax1.set_xlabel('net_charge', fontsize=18)
+ax1.axhline(y=0, color='k', linestyle='dotted')
+ax1.axvline(x=0, color='k', linestyle='dotted')
+ax1.axvline(x=4, color='k', linestyle='dotted')
+ax1.set_xticks(np.arange(0, 15.1, 3))
+ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax1.tick_params(axis='y', labelsize=18)
+ax1.tick_params(axis='x', labelsize=18)
 
-axes[1, 0].scatter(X_cLogP_predicted, Y_cLogP_predicted ,color = 'red', s=10)
-axes[1, 0].set_xlabel('cLogP',fontsize=15)
-axes[1, 0].axhline(y=0, color='k', linestyle='dotted')
-axes[1, 0].axvline(x=-6, color='k', linestyle='dotted')
-axes[1, 0].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[1, 0].tick_params(axis='y', labelsize=16)
-axes[1, 0].tick_params(axis='x', labelsize=16)
+# Plot 2
+ax2.scatter(X_hydrophobic, Y_hydrophobic, color='red', s=10)
+ax2.set_xlabel('hydrophobic_composition', fontsize=18)
+ax2.axhline(y=0, color='k', linestyle='dotted')
+ax2.axvline(x=0.2, color='k', linestyle='dotted')
+ax2.axvline(x=0.4, color='k', linestyle='dotted')
+ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax2.tick_params(axis='y', labelsize=18)
+ax2.tick_params(axis='x', labelsize=18)
+ax2.set_xticks(np.arange(0, 0.81, 0.2))
 
-axes[1, 1].scatter(X_cationic, Y_cationic,color = 'red', s=10)
-axes[1, 1].set_xlabel('cationic_composition',fontsize=15)
-axes[1, 1].axhline(y=0, color='k', linestyle='dotted')
-axes[1, 1].axvline(x=0.10, color='k', linestyle='dotted')
-axes[1, 1].axvline(x=0.20, color='k', linestyle='dotted')
-axes[1, 1].yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
-axes[1, 1].tick_params(axis='y', labelsize=16)
-axes[1, 1].tick_params(axis='x', labelsize=16)
+# Plot 3
+ax3.scatter(X_cLogP_predicted, Y_cLogP_predicted, color='red', s=10)
+ax3.set_xlabel('CLogP_rdkit', fontsize=18)
+ax3.axhline(y=0, color='k', linestyle='dotted')
+ax3.axvline(x=-6, color='k', linestyle='dotted')
+ax3.set_xticks(np.arange(-15, 5.01, 5))
+ax3.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax3.tick_params(axis='y', labelsize=18)
+ax3.tick_params(axis='x', labelsize=18)
 
-# set overall title and adjust subplot spacing
+# Plot 4
+ax4.scatter(X_cationic, Y_cationic, color='red', s=10)
+ax4.set_xlabel('cationic_composition', fontsize=18)
+ax4.axhline(y=0, color='k', linestyle='dotted')
+ax4.axvline(x=0.1, color='k', linestyle='dotted')
+ax4.axvline(x=0.2, color='k', linestyle='dotted')
+ax4.yaxis.set_major_formatter(plt.FuncFormatter(lambda val, pos: f'{val:.3f}'))
+ax4.tick_params(axis='y', labelsize=18)
+ax4.tick_params(axis='x', labelsize=18)
+ax4.set_xticks(np.arange(0, 0.81, 0.2))
+
+# === Styling ===
+fig.text(0.03, 0.5, 'A - SHAP values Class0: MIC>64', ha='center', va='center', rotation='vertical', fontsize=26)
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.subplots_adjust(hspace=0.4, wspace=0.3)
-#fig.text(0.5, 0.03, 'feature values', ha'center', va='center', fontsize=14)
-fig.text(0.03, 0.5, 'SHAP values Class0: MIC>64', ha='center', va='center', rotation='vertical', fontsize=18)
-plt.rcParams['font.family'] = 'Times New Roman'
+plt.subplots_adjust(hspace=0.3, wspace=0.3)
 plt.show()
