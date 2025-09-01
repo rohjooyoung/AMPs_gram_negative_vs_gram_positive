@@ -7,7 +7,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import confusion_matrix, classification_report, precision_recall_curve, auc
+from sklearn.metrics import confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 from sklearn.metrics import PrecisionRecallDisplay
 from sklearn.neural_network import MLPClassifier
